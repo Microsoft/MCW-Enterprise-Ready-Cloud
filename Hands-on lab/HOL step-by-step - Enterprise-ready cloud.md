@@ -124,7 +124,7 @@ In this exercise, you will apply one of the built-in Azure Policies to restrict 
 1.  First, we need to build a list of resource types, which will be permitted, and their corresponding resource providers. We'll do that using PowerShell. Start PowerShell ISE, and log in to your Azure subscription:
 
     ```
-        Login-AzureRmAccount -Subscription "{subscription name or id}"
+        Login-AzureRmAccount -SubscriptionId "{subscription name or id}"
     ```
 
 2.  Enter the following script into the edit window, and run the script:
