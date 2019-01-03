@@ -662,15 +662,15 @@ In this task, you will update a script to automatically add a user to the contri
     ```powershell
     param([string]$SubscriptionId, [string]$AdGroupName) 
 
-    Select-AzureRmSubscription -SubscriptionId $SubscriptionId
+    Select-AzSubscription -SubscriptionId $SubscriptionId
 
     $scope = "/subscriptions/$SubscriptionId"
 
-    $groupObjectId = (Get-AzureRmADGroup -SearchString $AdGroupName).Id.Guid
+    $groupObjectId = (Get-AzADGroup -Displayname $AdGroupName).Id
 
     Write-Output "Adding group to contributor role"
 
-    New-AzureRmRoleAssignment -Scope $scope `
+    New-AzRoleAssignment -Scope $scope `
                             -RoleDefinitionName "Contributor" `
                             -ObjectId $groupObjectId 
     ```
@@ -679,15 +679,15 @@ In this task, you will update a script to automatically add a user to the contri
 
 1. Save the file as **ConfigureSubscription.ps1**.
 
-4.  Create a local variable containing your Subscription ID (you can copy your subscription ID from the Azure portal, or obtain it using Get-AzureRmSubscription):
+4.  In the **Console** pane, create a new variable called **\$SubscriptionId**, containing your Subscription ID (you can copy your subscription ID from the Azure portal, or obtain it using Get-AzSubscription):
 
-    Paste this under the param section of the script and save.
-
+   
     ```powershell
-    $SubscriptionId = "{your subscription id}"
+    $SubscriptionId = "your subscription id"
     ```
 
 5.  Execute the script passing in the *-SubscriptionID* and *-AdGroupName* parameters:
+
 
     ```powershell
     . $HOME\ConfigureSubscription.ps1 -SubscriptionId $SubscriptionId -AdGroupName "BU-Electronics-Admin"
@@ -745,43 +745,43 @@ In this task, you will create a script that will create a new resource group, as
         [string]$AdGroupName
     ) 
 
-    Select-AzureRmSubscription -SubscriptionId $SubscriptionId
+    Select-AzSubscription -SubscriptionId $SubscriptionId
 
     # Create resource group
-    New-AzureRmResourceGroup -Name $ResourceGroupName -Location $Location 
+    New-AzResourceGroup -Name $ResourceGroupName -Location $Location 
 
     $scope = "/subscriptions/$subscriptionId/resourceGroups/$resourceGroupName"
 
     # Assign Owner role to given group
-    $groupObjectId = (Get-AzureRmADGroup -SearchString $AdGroupName).Id.Guid
+    $groupObjectId = (Get-AzADGroup -DisplayName $AdGroupName).Id
 
-    New-AzureRmRoleAssignment -Scope $scope `
+    New-AzRoleAssignment -Scope $scope `
                             -RoleDefinitionName "Owner" `
                             -ObjectId $groupObjectId
 
     # Assign policy to apply IOCode tag
-    $definition = Get-AzureRmPolicyDefinition | where {$_.Properties.displayName -eq "Apply tag and its default value"}
+    $definition = Get-AzPolicyDefinition | where {$_.Properties.displayName -eq "Apply tag and its default value"}
 
     $parameters = @{
         tagName = 'IOCode'
         tagValue = $IOCode
         }
 
-    New-AzureRmPolicyAssignment -Name "AppendIOCode" `
+    New-AzPolicyAssignment -Name "AppendIOCode" `
                                 -Scope $scope `
                                 -DisplayName "Append IO Code" `
                                 -PolicyDefinition $definition `
                                 -PolicyParameterObject $parameters
     
     # Assign policy to apply CostCenter tag
-    $definition = Get-AzureRmPolicyDefinition | where {$_.Properties.displayName -eq "Apply tag and its default value"}
+    $definition = Get-AzPolicyDefinition | where {$_.Properties.displayName -eq "Apply tag and its default value"}
 
     $parameters = @{
         tagName = 'CostCenter'
         tagValue = $CostCenter
         }
 
-    New-AzureRmPolicyAssignment -Name "AppendCostCenter" `
+    New-AzPolicyAssignment -Name "AppendCostCenter" `
                                 -Scope $scope `
                                 -DisplayName "Append Cost Center" `
                                 -PolicyDefinition $definition `
@@ -800,7 +800,7 @@ In this task, you will create a script that will create a new resource group, as
 
     ```powershell
     $resourceGroupName = "DelegatedProjectDemo"
-    $SubscriptionId = "{your subscription id}"
+    $SubscriptionId = "your subscription id"
     ```
 
 7.  In the **Console** pane, execute the following command to create a new resource group with delegated permissions and IO Code and Cost Center policies.
@@ -812,7 +812,7 @@ In this task, you will create a script that will create a new resource group, as
 8.  Create a new storage account in the resource group (choose a unique name) to validate the ioCode tag was applied (replace *uniquestorageaccount* with a unique value).
 
     ```powershell
-    New-AzureRmStorageAccount -ResourceGroupName $resourceGroupName `
+    New-AzStorageAccount -ResourceGroupName $resourceGroupName `
         -Name "uniquestorageaccount" `
         -SkuName Standard_LRS `
         -Location $location 
@@ -821,8 +821,8 @@ In this task, you will create a script that will create a new resource group, as
 9.  You can now search for resources with the applied tags to verify the policy has been applied. Execute the following PowerShell to validate.
    
     ```powershell
-    Get-AzureRmResource -TagName ioCode
-    Get-AzureRmResource -TagName CostCenter
+    Get-AzResource -TagName ioCode
+    Get-AzResource -TagName CostCenter
     ```
     In the output, you should see your storage account returned for each tag.
 
